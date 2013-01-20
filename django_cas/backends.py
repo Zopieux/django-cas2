@@ -1,8 +1,8 @@
 """ Django CAS 2.0 authentication backend """
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
 from django_cas.exceptions import CasTicketException
 from django_cas.models import Tgt, PgtIOU
 from urllib import urlencode, urlopen
@@ -32,12 +32,13 @@ class CASBackend(ModelBackend):
 
         logger.debug("User '%s' passed authentication by CAS backend", username)
 
+        user_model = get_user_model()
         try:
-            return User.objects.get(username=username)
-        except User.DoesNotExist:
+            return user_model.objects.get(username=username)
+        except user_model.DoesNotExist:
             if settings.CAS_AUTO_CREATE_USERS:
                 logger.debug("User '%s' auto created by CAS backend", username)
-                return User.objects.create_user(username)
+                return user_model.objects.create_user(username)
             else:
                 logger.error("Failed authentication, user '%s' does not exist", username)
 
