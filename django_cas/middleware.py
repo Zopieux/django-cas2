@@ -73,14 +73,14 @@ class CASLoginMiddleware(object):
                 return HttpResponseRedirect('%s?next=%s' % (settings.LOGOUT_URL, urlquote_plus(request.get_full_path())))
 
     def process_response(self, request, response):
-        if request.user.is_authenticated() and not 'elorus_cas' in request.COOKIES:
+        if hasattr(request, 'user') and request.user.is_authenticated() and not 'elorus_cas' in request.COOKIES:
             #by default the cookie expires when the session is over.. so.. perfect!
             response.set_cookie(key='elorus_cas', value=self.hash_value('login'), domain=settings.ELEP_DOMAIN, max_age=request.session.get_expiry_age(), httponly=True)
-        elif not request.user.is_authenticated() and 'elorus_cas' in request.COOKIES and request.COOKIES['elorus_cas'] == self.hash_value('login'):
+        elif (not hasattr(request, 'user') or not request.user.is_authenticated()) and 'elorus_cas' in request.COOKIES and request.COOKIES['elorus_cas'] == self.hash_value('login'):
             current_view = resolve(request.path)[0]
             if hasattr(current_view, 'func_name') and current_view.func_name == 'logout':
                 response.set_cookie(key='elorus_cas', value=self.hash_value('logout'), domain=settings.ELEP_DOMAIN)
-        elif request.user.is_authenticated() and 'elorus_cas' in request.COOKIES and request.COOKIES['elorus_cas'] == self.hash_value('logout'):
+        elif hasattr(request, 'user') and request.user.is_authenticated() and 'elorus_cas' in request.COOKIES and request.COOKIES['elorus_cas'] == self.hash_value('logout'):
             current_view = resolve(request.path)[0]
             if hasattr(current_view, 'func_name') and current_view.func_name == 'login':
                 response.set_cookie(key='elorus_cas', value=self.hash_value('logout'), domain=settings.ELEP_DOMAIN, max_age=request.session.get_expiry_age())
