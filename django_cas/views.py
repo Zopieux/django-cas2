@@ -77,7 +77,7 @@ def _logout_url(request, next_page):
 
     logout_url = urljoin(settings.CAS_SERVER_URL, 'logout')
     if next_page:
-        logout_url += '?' + urlencode({'url': _service(request) + next_page})
+        logout_url += '?' + urlencode({'url': next_page})
 
     return logout_url
 
